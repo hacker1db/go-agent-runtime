@@ -28,9 +28,11 @@ th, _ := rt.CreateThread(ctx, agentruntime.CreateThreadOptions{AgentID: "assista
 _ = rt.SendMessage(ctx, th.ThreadID(), agentruntime.MessageInput{Role: agentruntime.RoleUser, Content: "hi"})
 ```
 
-## Conformance map (Runtime §§)
+## Conformance map
 
-| § | Requirement | Where |
+Section numbers refer to the [Runtime spec](https://standardagentspec.org/0.2.0/infrastructure/runtime/).
+
+| Section | Requirement | Where |
 |---|---|---|
 | 1 | One step at a time per thread; persist before continuing; limits; queued work | `runtime.go` (`schedule`/`runLoop`), `execution.go` |
 | 1.1 | `ThreadState.Decide()` available at rest and during execution; never touches messages | `decide.go` |
