@@ -39,6 +39,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
+    defaults:
+      run:
+        # PowerShell splits `-coverprofile=coverage.out` at the dot on Windows.
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +70,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.go == 'stable'
         run: go tool cover -func=coverage.out | tail -n 1 | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Run examples
-        shell: bash
         run: |
           set -euo pipefail
           for d in examples/*/; do
