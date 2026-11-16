@@ -1,5 +1,10 @@
 # go-agent-runtime
 
+[![CI](https://github.com/hacker1db/go-agent-runtime/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hacker1db/go-agent-runtime/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/hacker1db/go-agent-runtime/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/hacker1db/go-agent-runtime/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hacker1db/go-agent-runtime/badge)](https://scorecard.dev/viewer/?uri=github.com/hacker1db/go-agent-runtime)
+[![Go Reference](https://pkg.go.dev/badge/github.com/hacker1db/go-agent-runtime/agentruntime.svg)](https://pkg.go.dev/github.com/hacker1db/go-agent-runtime/agentruntime)
+
 A Go implementation of the runtime layer of the
 [Standard Agent Specification v0.2.0 — Runtime](https://standardagentspec.org/0.2.0/infrastructure/runtime/).
 
@@ -8,9 +13,13 @@ threads: it assembles model context, calls providers, runs tools sequentially, e
 stop conditions, persists everything before advancing, and coordinates parent/child
 subagent threads.
 
+```sh
+go get github.com/hacker1db/go-agent-runtime/agentruntime
+```
+
 ```go
 reg := agentruntime.NewRegistry()
-reg.AddProvider("openai", myProvider)               // implements agentruntime.Provider
+reg.AddProvider("openai", myProvider)               // implements agentruntime.Provider; see examples/06 for keyless OIDC auth
 reg.AddModel(agentruntime.ModelDefinition{Name: "fast", Provider: "openai", Model: "gpt-x"})
 reg.AddPrompt(agentruntime.PromptDefinition{Name: "chat", Model: "fast", System: "You help {{user}}."})
 reg.AddAgent(agentruntime.AgentDefinition{
@@ -19,7 +28,7 @@ reg.AddAgent(agentruntime.AgentDefinition{
     SideB: agentruntime.SideConfig{Human: true},
 })
 
-store, _ := agentruntime.OpenFileStore("./data", key32) // durable; AES-GCM for secret/scoped env
+store, _ := agentruntime.OpenFileStore("./data", key32) // durable; AES-GCM for secret/scoped env (key from your KMS)
 rt := agentruntime.New(reg, store, agentruntime.Config{})
 _ = rt.Start(ctx)                                        // recovers lost runs + durable queues
 defer rt.Close()
@@ -84,8 +93,33 @@ including `execution_lost` recovery on `Start`.
 - Required parent hooks from enabled relationships on **both** sides apply to every prompt
   (Hooks §1.3, Agents §6), ordered side A then side B, declaration order.
 
-## Tests
+## Security by default
 
+The runtime does not handle credentials: providers do. The examples and the CI
+pipeline use no long-lived secrets.
+
+- **Keyless model access.** [`examples/06-oidc-workload-identity`](examples/06-oidc-workload-identity)
+  exchanges a platform-issued OIDC token (Kubernetes, AKS, GitHub Actions) for a
+  short-lived access token through workload identity federation. It covers both
+  RFC 8693 token exchange (Google Cloud STS and others) and the Entra
+  client-assertion flow. There is no API key, PAT, or client secret.
+- **Encryption at rest.** `FileStore` encrypts secret and scoped environment
+  values with AES-GCM.
+- **CI.** Workflows use top-level `permissions: {}` with per-job opt-in, actions
+  pinned to commit SHAs, and `persist-credentials: false`. CI uses no stored
+  secrets; Scorecard publishes over OIDC.
+- **Scanning.** CodeQL (`security-extended`), gosec (via golangci-lint),
+  govulncheck, dependency review on pull requests, OpenSSF Scorecard, and
+  Dependabot for Go modules and GitHub Actions.
+
+See [SECURITY.md](SECURITY.md) to report a vulnerability.
+
+## Development
+
+```sh
+make check   # tidy, fmt, vet, golangci-lint, race tests, govulncheck, run examples
 ```
-go test ./... -race
-```
+
+CI runs the same checks on Linux with Go `oldstable` and `stable`, and on macOS
+and Windows with `stable`. Coding and security standards are in
+[CONTRIBUTING.md](CONTRIBUTING.md).

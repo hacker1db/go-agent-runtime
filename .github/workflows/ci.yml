@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: every job opts in to exactly what it needs.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+      - name: go mod tidy is clean
+        run: go mod tidy -diff
+      - name: go mod verify
+        run: go mod verify
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.15.0
+
+  test:
+    name: Test (Go ${{ matrix.go }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [oldstable, stable]
+        os: [ubuntu-latest]
+        include:
+          - go: stable
+            os: macos-latest
+          - go: stable
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Build
+        run: go build ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Test (race, shuffled)
+        run: go test -race -shuffle=on -count=1 -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Coverage summary
+        if: matrix.os == 'ubuntu-latest' && matrix.go == 'stable'
+        run: go tool cover -func=coverage.out | tail -n 1 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Run examples
+        shell: bash
+        run: |
+          set -euo pipefail
+          for d in examples/*/; do
+            echo "::group::go run ./$d"
+            go run "./$d"
+            echo "::endgroup::"
+          done
+
+  vulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+        with:
+          go-version-input: stable
+          go-package: ./...

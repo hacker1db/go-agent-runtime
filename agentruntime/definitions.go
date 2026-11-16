@@ -293,23 +293,34 @@ func NewRegistry() *Registry {
 	}
 }
 
+// AddAgent registers or replaces an agent definition by name.
 func (r *Registry) AddAgent(a AgentDefinition) { r.mu.Lock(); r.agents[a.Name] = &a; r.mu.Unlock() }
+
+// AddPrompt registers or replaces a prompt definition by name.
 func (r *Registry) AddPrompt(p PromptDefinition) {
 	r.mu.Lock()
 	r.prompts[p.Name] = &p
 	r.mu.Unlock()
 }
+
+// AddTool registers or replaces a tool definition by name.
 func (r *Registry) AddTool(t ToolDefinition) { r.mu.Lock(); r.tools[t.Name] = &t; r.mu.Unlock() }
+
+// AddModel registers or replaces a model definition by name.
 func (r *Registry) AddModel(m ModelDefinition) {
 	r.mu.Lock()
 	r.models[m.Name] = &m
 	r.mu.Unlock()
 }
+
+// AddHandler registers or replaces a handler definition by name.
 func (r *Registry) AddHandler(h HandlerDefinition) {
 	r.mu.Lock()
 	r.handlers[h.Name] = &h
 	r.mu.Unlock()
 }
+
+// AddEffect registers or replaces an effect definition by name.
 func (r *Registry) AddEffect(e EffectDefinition) {
 	r.mu.Lock()
 	r.effects[e.Name] = &e
@@ -323,6 +334,8 @@ func (r *Registry) AddHook(pkg string, h Hook) {
 	r.hooks[qualify(pkg, h.ID)] = &h
 	r.mu.Unlock()
 }
+
+// AddProvider registers or replaces a model provider under name.
 func (r *Registry) AddProvider(name string, p Provider) {
 	r.mu.Lock()
 	r.providers[name] = p
@@ -336,31 +349,42 @@ func qualify(pkg, id string) string {
 	return pkg + "/" + id
 }
 
+// Agent returns the named agent definition, or nil.
 func (r *Registry) Agent(n string) *AgentDefinition {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.agents[n]
 }
+
+// Prompt returns the named prompt definition, or nil.
 func (r *Registry) Prompt(n string) *PromptDefinition {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.prompts[n]
 }
+
+// Tool returns the named tool definition, or nil.
 func (r *Registry) Tool(n string) *ToolDefinition {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.tools[n]
 }
+
+// Model returns the named model definition, or nil.
 func (r *Registry) Model(n string) *ModelDefinition {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.models[n]
 }
+
+// Handler returns the named handler definition, or nil.
 func (r *Registry) Handler(n string) *HandlerDefinition {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.handlers[n]
 }
+
+// Effect returns the named effect definition, or nil.
 func (r *Registry) Effect(n string) *EffectDefinition {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -371,6 +395,8 @@ func (r *Registry) hook(id string) *Hook {
 	defer r.mu.RUnlock()
 	return r.hooks[id]
 }
+
+// Provider returns the named provider, or nil.
 func (r *Registry) Provider(n string) Provider {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -391,17 +417,21 @@ func sortedKeys[V any](m map[string]V) []string {
 	return out
 }
 
-// AgentNames, PromptNames, ModelNames list registered definitions.
+// AgentNames lists registered agent names in sorted order.
 func (r *Registry) AgentNames() []string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return sortedKeys(r.agents)
 }
+
+// PromptNames lists registered prompt names in sorted order.
 func (r *Registry) PromptNames() []string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return sortedKeys(r.prompts)
 }
+
+// ModelNames lists registered model names in sorted order.
 func (r *Registry) ModelNames() []string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

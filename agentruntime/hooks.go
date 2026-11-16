@@ -8,6 +8,7 @@ import (
 // HookName identifies a hook position (Hooks §1.1).
 type HookName string
 
+// Hook positions (Hooks §1.1).
 const (
 	HookAfterThreadCreated   HookName = "after_thread_created"
 	HookAfterSubagentCreated HookName = "after_subagent_created"
@@ -95,15 +96,15 @@ func (h *Hook) implemented() bool {
 	return false
 }
 
-// ErrHookComposition is returned when a required parent hook cannot be
+// HookCompositionError is returned when a required parent hook cannot be
 // resolved; composition fails closed (Runtime §7.3.1).
-type ErrHookComposition struct {
+type HookCompositionError struct {
 	Child  string
 	HookID string
 	Reason string
 }
 
-func (e *ErrHookComposition) Error() string {
+func (e *HookCompositionError) Error() string {
 	return fmt.Sprintf("agentruntime: required parent hook %q from child agent %q: %s", e.HookID, e.Child, e.Reason)
 }
 
@@ -119,17 +120,17 @@ func (rt *Runtime) childHookRequirements(ctx context.Context, s *ThreadState, ag
 			}
 			child := rt.reg.Agent(rel.Agent)
 			if child == nil {
-				return nil, nil, &ErrHookComposition{Child: rel.Agent, Reason: "child agent is not defined"}
+				return nil, nil, &HookCompositionError{Child: rel.Agent, Reason: "child agent is not defined"}
 			}
 			for _, req := range child.ParentHooks {
 				h := rt.reg.hook(qualify(child.PackageName, req.Hook))
 				switch {
 				case h == nil:
-					return nil, nil, &ErrHookComposition{Child: child.Name, HookID: req.Hook, Reason: "hook cannot be loaded"}
+					return nil, nil, &HookCompositionError{Child: child.Name, HookID: req.Hook, Reason: "hook cannot be loaded"}
 				case h.Scope == HookScopeUser:
-					return nil, nil, &ErrHookComposition{Child: child.Name, HookID: req.Hook, Reason: "user-scoped hooks cannot be required on a parent"}
+					return nil, nil, &HookCompositionError{Child: child.Name, HookID: req.Hook, Reason: "user-scoped hooks cannot be required on a parent"}
 				case !h.implemented():
-					return nil, nil, &ErrHookComposition{Child: child.Name, HookID: req.Hook, Reason: "hook has no implementation for " + string(h.Name)}
+					return nil, nil, &HookCompositionError{Child: child.Name, HookID: req.Hook, Reason: "hook has no implementation for " + string(h.Name)}
 				}
 				if req.Stage == "before_parent" {
 					before = append(before, h)

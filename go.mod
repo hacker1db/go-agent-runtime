@@ -1,3 +1,3 @@
-module go-agent-runtime
+module github.com/hacker1db/go-agent-runtime
 
-go 1.23
+go 1.26.0

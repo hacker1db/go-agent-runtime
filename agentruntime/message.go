@@ -13,6 +13,7 @@ import (
 // "assistant" is the side A perspective (side B acts on it).
 type Role string
 
+// Message roles.
 const (
 	RoleSystem    Role = "system"
 	RoleUser      Role = "user"
@@ -23,6 +24,7 @@ const (
 // Side identifies one side of a dual-sided agent.
 type Side string
 
+// The two sides of a dual-sided agent.
 const (
 	SideA Side = "a"
 	SideB Side = "b"

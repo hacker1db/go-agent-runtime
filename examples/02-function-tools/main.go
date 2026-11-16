@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"go-agent-runtime/agentruntime"
+	"github.com/hacker1db/go-agent-runtime/agentruntime"
 )
 
 func main() {

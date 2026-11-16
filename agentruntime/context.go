@@ -3,6 +3,7 @@ package agentruntime
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -111,7 +112,8 @@ func (rt *Runtime) assembleContext(ctx context.Context, s *ThreadState, side Sid
 }
 
 func hookErr(h *Hook, err error) error {
-	if _, ok := err.(*HookBlockedError); ok {
+	var blocked *HookBlockedError
+	if errors.As(err, &blocked) {
 		return err
 	}
 	return fmt.Errorf("agentruntime: %s hook %q: %w", h.Name, h.ID, err)

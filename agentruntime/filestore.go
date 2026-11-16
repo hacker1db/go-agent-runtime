@@ -53,7 +53,7 @@ func OpenFileStore(dir string, key []byte) (*FileStore, error) {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
 			continue
 		}
-		b, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		b, err := os.ReadFile(filepath.Join(dir, e.Name())) //nolint:gosec // G304: name comes from ReadDir of the store's own directory
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +83,7 @@ func OpenFileStore(dir string, key []byte) (*FileStore, error) {
 		t := td
 		fs.threads[td.Record.ID] = &t
 	}
-	fs.MemoryStore.persist = fs.write
+	fs.persist = fs.write
 	return fs, nil
 }
 

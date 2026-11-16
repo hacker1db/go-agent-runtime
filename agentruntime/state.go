@@ -469,27 +469,38 @@ func (s *ThreadState) ListFiles(ctx context.Context) ([]FileRecord, error) {
 
 // ---- Resource loading ----
 
+// LoadModel returns the named model definition or an error if it is not registered.
 func (s *ThreadState) LoadModel(name string) (*ModelDefinition, error) {
 	if m := s.rt.reg.Model(name); m != nil {
 		return m, nil
 	}
 	return nil, errf("model %q not found", name)
 }
+
+// LoadPrompt returns the named prompt definition or an error if it is not registered.
 func (s *ThreadState) LoadPrompt(name string) (*PromptDefinition, error) {
 	if p := s.rt.reg.Prompt(name); p != nil {
 		return p, nil
 	}
 	return nil, errf("prompt %q not found", name)
 }
+
+// LoadAgent returns the named agent definition or an error if it is not registered.
 func (s *ThreadState) LoadAgent(name string) (*AgentDefinition, error) {
 	if a := s.rt.reg.Agent(name); a != nil {
 		return a, nil
 	}
 	return nil, errf("agent %q not found", name)
 }
+
+// GetPromptNames lists registered prompt names in sorted order.
 func (s *ThreadState) GetPromptNames() []string { return s.rt.reg.PromptNames() }
-func (s *ThreadState) GetAgentNames() []string  { return s.rt.reg.AgentNames() }
-func (s *ThreadState) GetModelNames() []string  { return s.rt.reg.ModelNames() }
+
+// GetAgentNames lists registered agent names in sorted order.
+func (s *ThreadState) GetAgentNames() []string { return s.rt.reg.AgentNames() }
+
+// GetModelNames lists registered model names in sorted order.
+func (s *ThreadState) GetModelNames() []string { return s.rt.reg.ModelNames() }
 
 // ---- Environment ----
 

@@ -17,10 +17,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"go-agent-runtime/agentruntime"
+	"github.com/hacker1db/go-agent-runtime/agentruntime"
 )
 
-// Demo key only. In production load a 32-byte key from a secret manager.
+// Demo key only. In production, fetch the 32-byte key from a KMS or secret
+// manager that the workload reaches through workload identity (see example 06).
+// Never commit a key or pass it in a static environment variable.
 var key = bytes.Repeat([]byte("k"), 32)
 
 func newRuntime(ctx context.Context, dir string, replies ...string) *agentruntime.Runtime {

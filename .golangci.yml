@@ -1,0 +1,96 @@
+# golangci-lint v2 configuration. See CONTRIBUTING.md for the coding standards
+# these linters enforce. Run locally with `make lint`.
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  # contextcheck is intentionally off: runs, effects and child threads use
+  # detached contexts by design so they outlive the request that started them.
+  enable:
+    # Correctness
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - errorlint
+    - nilerr
+    - noctx
+    - rowserrcheck
+    - sqlclosecheck
+    # Security
+    - gosec
+    # Style and maintainability
+    - copyloopvar
+    - errname
+    - misspell
+    - nakedret
+    - revive
+    - unconvert
+    - usestdlibvars
+    - whitespace
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # readability over struct packing
+        - shadow # `err` shadowing is idiomatic
+    gosec:
+      excludes:
+        - G104 # duplicate of errcheck
+    misspell:
+      locale: US
+    nakedret:
+      max-func-lines: 0
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+          arguments: ["disableStutteringCheck"]
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration
+        - name: var-naming
+  exclusions:
+    generated: lax
+    presets:
+      - std-error-handling
+    rules:
+      # MemoryStore methods implement the documented Store interface.
+      - linters: [revive]
+        text: "exported method MemoryStore\\."
+      # Examples and tests use demo-only values and terse error handling.
+      - path: (_test\.go|^examples/)
+        linters:
+          - gosec
+          - errcheck
+          - noctx
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/hacker1db/go-agent-runtime

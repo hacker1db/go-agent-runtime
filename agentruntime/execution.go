@@ -64,32 +64,45 @@ type ExecutionState struct {
 	scratch     map[string]any
 }
 
+// FlowID returns the identifier of the current execution flow.
 func (e *ExecutionState) FlowID() string { return e.flowID }
+
+// CurrentSide returns the side whose turn is executing.
 func (e *ExecutionState) CurrentSide() Side {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.currentSide
 }
+
+// StepCount returns the total steps taken in this flow.
 func (e *ExecutionState) StepCount() int {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.stepCount
 }
+
+// SideAStepCount returns the steps taken by side A in this flow.
 func (e *ExecutionState) SideAStepCount() int {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.sideSteps[SideA]
 }
+
+// SideBStepCount returns the steps taken by side B in this flow.
 func (e *ExecutionState) SideBStepCount() int {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.sideSteps[SideB]
 }
+
+// Stopped reports whether the flow has stopped.
 func (e *ExecutionState) Stopped() bool {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.stopped
 }
+
+// StoppedBy returns the side that stopped the flow, or nil.
 func (e *ExecutionState) StoppedBy() *Side {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -458,7 +471,8 @@ func (rt *Runtime) drain(ctx context.Context, s *ThreadState, side Side) (drainR
 	}
 	for _, it := range items {
 		if ctx.Err() != nil {
-			return res, nil
+			// Cancellation stops draining; unacked items stay queued for the next run.
+			return res, nil //nolint:nilerr // intentional: cancellation is not a drain failure
 		}
 		switch it.Kind {
 		case QueueMessage:

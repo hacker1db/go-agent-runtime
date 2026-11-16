@@ -1,0 +1,17 @@
+# Build and test output
+/bin/
+coverage.out
+*.test
+*.prof
+
+# Local data and secrets never belong in the repo
+/data/
+.env
+.env.*
+*.pem
+*.key
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

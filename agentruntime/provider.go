@@ -47,6 +47,7 @@ type Provider interface {
 // ProviderFunc adapts a function to Provider.
 type ProviderFunc func(ctx context.Context, req ProviderRequest) (*ProviderResponse, error)
 
+// Generate calls f.
 func (f ProviderFunc) Generate(ctx context.Context, req ProviderRequest) (*ProviderResponse, error) {
 	return f(ctx, req)
 }
@@ -61,6 +62,7 @@ type ScriptedProvider struct {
 	Fallback func(req ProviderRequest) (*ProviderResponse, error)
 }
 
+// Generate returns the next scripted response, or Fallback once Responses is exhausted.
 func (p *ScriptedProvider) Generate(ctx context.Context, req ProviderRequest) (*ProviderResponse, error) {
 	p.mu.Lock()
 	p.Requests = append(p.Requests, cloneJSON(req))

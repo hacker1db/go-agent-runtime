@@ -15,6 +15,7 @@ var ErrNotFound = errors.New("agentruntime: not found")
 // ThreadRunState is the externally visible run status.
 type ThreadRunState string
 
+// Run states.
 const (
 	RunIdle    ThreadRunState = "idle"
 	RunRunning ThreadRunState = "running"
